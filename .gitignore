@@ -19,3 +19,13 @@
 
 # Go workspace file
 go.work
+
+.vscode
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+blockchain.db
