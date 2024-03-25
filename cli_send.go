@@ -11,7 +11,7 @@ func (cli *CLI) send(from, to string, amount int) {
 		fmt.Println("ERROR: Recipient address is not valid")
 		return
 	}
-	bc := NewBlockChain(from)
+	bc := NewBlockchain(from)
 	defer bc.db.Close()
 
 	tx := NewUTXOTransaction(from, to, amount, bc)

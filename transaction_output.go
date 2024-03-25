@@ -2,9 +2,10 @@ package main
 
 import "bytes"
 
+// TXOutput represents a transaction output.
 type TXOutput struct {
-	Value      int
-	PubKeyHash []byte
+	Value      int    // The value of the output.
+	PubKeyHash []byte // The hash of the public key associated with the output.
 }
 
 func NewTXOutput(value int, address string) *TXOutput {

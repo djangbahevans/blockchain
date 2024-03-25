@@ -9,7 +9,7 @@ func (cli *CLI) getBalance(address string) {
 	if !ValidateAddress(address) {
 		log.Panic("ERROR: Address is not valid")
 	}
-	bc := NewBlockChain(address)
+	bc := NewBlockchain(address)
 	defer bc.db.Close()
 
 	balance := 0
@@ -23,4 +23,3 @@ func (cli *CLI) getBalance(address string) {
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
-

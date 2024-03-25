@@ -7,12 +7,13 @@ import (
 	"time"
 )
 
+// Block represents a block in the blockchain.
 type Block struct {
-	Timestamp     int64
-	Transactions  []*Transaction
-	PrevBlockHash []byte
-	Hash          []byte
-	Nonce         int
+	Timestamp     int64           // The timestamp when the block was created.
+	Transactions  []*Transaction  // The list of transactions included in the block.
+	PrevBlockHash []byte          // The hash of the previous block in the blockchain.
+	Hash          []byte          // The hash of the current block.
+	Nonce         int             // The nonce value used in mining the block.
 }
 
 func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {

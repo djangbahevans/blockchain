@@ -17,12 +17,12 @@ const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
 const genesisCoinbaseData = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 
-type BlockChain struct {
+type Blockchain struct {
 	tip []byte
 	db  *bolt.DB
 }
 
-type BlockChainIterator struct {
+type BlockchainIterator struct {
 	currentHash []byte
 	db          *bolt.DB
 }
@@ -35,7 +35,7 @@ func dbExists() bool {
 	return true
 }
 
-func NewBlockChain(address string) *BlockChain {
+func NewBlockchain(address string) *Blockchain {
 	if !dbExists() {
 		fmt.Println("No existing blockchain found. Create one first.")
 		os.Exit(1)
@@ -57,12 +57,12 @@ func NewBlockChain(address string) *BlockChain {
 		log.Panic(err)
 	}
 
-	bc := BlockChain{tip, db}
+	bc := Blockchain{tip, db}
 
 	return &bc
 }
 
-func CreateBlockChain(address string) *BlockChain {
+func CreateBlockchain(address string) *Blockchain {
 	if dbExists() {
 		fmt.Println("Blockchain already exists.")
 		os.Exit(1)
@@ -100,12 +100,12 @@ func CreateBlockChain(address string) *BlockChain {
 		log.Panic(err)
 	}
 
-	bc := BlockChain{tip, db}
+	bc := Blockchain{tip, db}
 
 	return &bc
 }
 
-func (bc *BlockChain) MineBlock(transactions []*Transaction) {
+func (bc *Blockchain) MineBlock(transactions []*Transaction) {
 	var lastHash []byte
 
 	for _, tx := range transactions {
@@ -136,13 +136,13 @@ func (bc *BlockChain) MineBlock(transactions []*Transaction) {
 	})
 }
 
-func (bc *BlockChain) Iterator() *BlockChainIterator {
-	bci := &BlockChainIterator{bc.tip, bc.db}
+func (bc *Blockchain) Iterator() *BlockchainIterator {
+	bci := &BlockchainIterator{bc.tip, bc.db}
 
 	return bci
 }
 
-func (i *BlockChainIterator) Next() *Block {
+func (i *BlockchainIterator) Next() *Block {
 	var block *Block
 
 	err := i.db.View(func(tx *bolt.Tx) error {
@@ -162,7 +162,7 @@ func (i *BlockChainIterator) Next() *Block {
 	return block
 }
 
-func (bc *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
+func (bc *Blockchain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
 	var unspentTXs []Transaction
 	spentTXOs := make(map[string][]int)
 	bci := bc.Iterator()
@@ -207,7 +207,7 @@ func (bc *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
 	return unspentTXs
 }
 
-func (bc *BlockChain) FindUTXO(pubKeyHash []byte) []TXOutput {
+func (bc *Blockchain) FindUTXO(pubKeyHash []byte) []TXOutput {
 	var UTXOs []TXOutput
 	unspentTransactions := bc.FindUnspentTransactions(pubKeyHash)
 
@@ -222,7 +222,7 @@ func (bc *BlockChain) FindUTXO(pubKeyHash []byte) []TXOutput {
 	return UTXOs
 }
 
-func (bc *BlockChain) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
+func (bc *Blockchain) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
 	unspentOutputs := make(map[string][]int)
 	unspentTXs := bc.FindUnspentTransactions(pubKeyHash)
 	accumulated := 0
@@ -246,7 +246,7 @@ Work:
 	return accumulated, unspentOutputs
 }
 
-func (bc *BlockChain) FindTransaction(ID []byte) (Transaction, error) {
+func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 	bci := bc.Iterator()
 
 	for {
@@ -266,7 +266,7 @@ func (bc *BlockChain) FindTransaction(ID []byte) (Transaction, error) {
 	return Transaction{}, errors.New("Transaction is not found")
 }
 
-func (bc *BlockChain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
+func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {
@@ -280,7 +280,7 @@ func (bc *BlockChain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey)
 	tx.Sign(privKey, prevTXs)
 }
 
-func (bc *BlockChain) VerifyTransactions(tx *Transaction) bool {
+func (bc *Blockchain) VerifyTransactions(tx *Transaction) bool {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {

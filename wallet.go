@@ -17,9 +17,10 @@ const version = byte(0x00)
 const walletFile = "wallet.dat"
 const addressChecksumLen = 4
 
+// Wallet represents a cryptocurrency wallet.
 type Wallet struct {
-	PrivateKey ecdsa.PrivateKey
-	PublicKey  []byte
+	PrivateKey ecdsa.PrivateKey // The private key used to sign transactions.
+	PublicKey  []byte           // The public key used to verify transactions.
 }
 
 func NewWallet() *Wallet {

@@ -14,9 +14,10 @@ var (
 
 const targetBits = 24
 
+// ProofOfWork represents the proof-of-work algorithm used in blockchain mining.
 type ProofOfWork struct {
-	block  *Block
-	target *big.Int
+	block  *Block   // The block to be mined.
+	target *big.Int // The target difficulty for mining the block.
 }
 
 func NewProofOfWork(b *Block) *ProofOfWork {

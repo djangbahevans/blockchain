@@ -15,10 +15,11 @@ import (
 
 const subsidy = 10
 
+// Transaction represents a single transaction in a blockchain.
 type Transaction struct {
-	ID   []byte
-	Vin  []TXInput
-	Vout []TXOutput
+	ID   []byte     // Unique identifier for the transaction.
+	Vin  []TXInput  // List of transaction inputs.
+	Vout []TXOutput // List of transaction outputs.
 }
 
 func (tx *Transaction) Hash() []byte {
@@ -57,7 +58,7 @@ func NewCoinbaseTx(to, data string) *Transaction {
 	return &tx
 }
 
-func NewUTXOTransaction(from, to string, amount int, bc *BlockChain) *Transaction {
+func NewUTXOTransaction(from, to string, amount int, bc *Blockchain) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 

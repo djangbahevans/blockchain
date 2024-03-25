@@ -74,7 +74,7 @@ func (cli *CLI) Run() {
 			createBlockchainCmd.Usage()
 			os.Exit(1)
 		}
-		cli.createBlockChain(*createBlockchainAddress)
+		cli.createBlockchain(*createBlockchainAddress)
 	}
 
 	if createWalletCmd.Parsed() {

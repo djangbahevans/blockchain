@@ -8,8 +8,9 @@ import (
 	"os"
 )
 
+// Wallets represents a collection of wallets.
 type Wallets struct {
-	Wallets map[string]*Wallet
+	Wallets map[string]*Wallet // A map of wallet addresses to Wallets.
 }
 
 func NewWallets() (*Wallets, error) {
