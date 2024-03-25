@@ -26,6 +26,10 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	return &block
 }
 
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
+}
+
 func (b *Block) Serialize() []byte {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)

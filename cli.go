@@ -5,22 +5,17 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 )
 
 type CLI struct{}
-
-func (cli *CLI) createBlockChain(address string) {
-	bc := CreateBlockChain(address)
-	bc.db.Close()
-	fmt.Println("Done!")
-}
 
 func (cli *CLI) Run() {
 	cli.validateArgs()
 
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	createBlockchainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
+	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
+	listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 
@@ -38,6 +33,16 @@ func (cli *CLI) Run() {
 		}
 	case "createblockchain":
 		err := createBlockchainCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "createwallet":
+		err := createWalletCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "listaddresses":
+		err := listAddressesCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -72,6 +77,14 @@ func (cli *CLI) Run() {
 		cli.createBlockChain(*createBlockchainAddress)
 	}
 
+	if createWalletCmd.Parsed() {
+		cli.createWallet()
+	}
+
+	if listAddressesCmd.Parsed() {
+		cli.listAddresses()
+	}
+
 	if printChainCmd.Parsed() {
 		cli.printChain()
 	}
@@ -82,27 +95,6 @@ func (cli *CLI) Run() {
 			os.Exit(1)
 		}
 		cli.send(*sendFrom, *sendTo, *sendAmount)
-	}
-}
-
-func (cli *CLI) printChain() {
-	bc := NewBlockChain("")
-	defer bc.db.Close()
-
-	bci := bc.Iterator()
-
-	for {
-		block := bci.Next()
-
-		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		pow := NewProofOfWork(block)
-		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
-		fmt.Println()
-
-		if len(block.PrevBlockHash) == 0 {
-			break
-		}
 	}
 }
 
@@ -119,27 +111,4 @@ func (cli *CLI) validateArgs() {
 		cli.printUsage()
 		os.Exit(1)
 	}
-}
-
-func (cli *CLI) getBalance(address string) {
-	bc := NewBlockChain(address)
-	defer bc.db.Close()
-
-	balance := 0
-	UTXOs := bc.FindUTXO(address)
-
-	for _, out := range UTXOs {
-		balance += out.Value
-	}
-
-	fmt.Printf("Balance of '%s': %d\n", address, balance)
-}
-
-func (cli *CLI) send(from, to string, amount int) {
-	bc := NewBlockChain(from)
-	defer bc.db.Close()
-
-	tx := NewUTXOTransaction(from, to, amount, bc)
-	bc.MineBlock([]*Transaction{tx})
-	fmt.Println("Success!")
 }
