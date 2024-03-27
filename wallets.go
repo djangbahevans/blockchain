@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 )
@@ -13,11 +14,11 @@ type Wallets struct {
 	Wallets map[string]*Wallet // A map of wallet addresses to Wallets.
 }
 
-func NewWallets() (*Wallets, error) {
+func NewWallets(nodeId string) (*Wallets, error) {
 	wallets := Wallets{}
 	wallets.Wallets = make(map[string]*Wallet)
 
-	err := wallets.LoadFromFile()
+	err := wallets.LoadFromFile(nodeId)
 	return &wallets, err
 }
 
@@ -44,8 +45,9 @@ func (ws *Wallets) GetAddresses() []string {
 	return addresses
 }
 
-func (ws *Wallets) SaveToFile() {
+func (ws *Wallets) SaveToFile(nodeId string) {
 	var content bytes.Buffer
+	walletFile := fmt.Sprintf(walletFile, nodeId)
 
 	encoder := gob.NewEncoder(&content)
 	err := encoder.Encode(ws)
@@ -59,7 +61,8 @@ func (ws *Wallets) SaveToFile() {
 	}
 }
 
-func (ws *Wallets) LoadFromFile() error {
+func (ws *Wallets) LoadFromFile(nodeId string) error {
+	walletFile := fmt.Sprintf(walletFile, nodeId)
 	if _, err := os.Stat(walletFile); errors.Is(err, os.ErrNotExist) {
 		return err
 	}

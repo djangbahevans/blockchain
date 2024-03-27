@@ -13,10 +13,11 @@ type Block struct {
 	PrevBlockHash []byte         // The hash of the previous block in the blockchain.
 	Hash          []byte         // The hash of the current block.
 	Nonce         int            // The nonce value used in mining the block.
+	Height        int
 }
 
-func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
-	block := Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
+func NewBlock(transactions []*Transaction, prevBlockHash []byte, height int) *Block {
+	block := Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0, height}
 	pow := NewProofOfWork(&block)
 	nonce, hash := pow.Run()
 
@@ -27,7 +28,7 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 }
 
 func NewGenesisBlock(coinbase *Transaction) *Block {
-	return NewBlock([]*Transaction{coinbase}, []byte{})
+	return NewBlock([]*Transaction{coinbase}, []byte{}, 0)
 }
 
 func (b *Block) Serialize() []byte {

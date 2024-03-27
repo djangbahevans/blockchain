@@ -17,7 +17,7 @@ const subsidy = 10
 
 // Transaction represents a single transaction in a blockchain.
 type Transaction struct {
-	ID   []byte     // Unique identifier for the transaction.
+	Id   []byte     // Unique identifier for the transaction.
 	Vin  []TXInput  // List of transaction inputs.
 	Vout []TXOutput // List of transaction outputs.
 }
@@ -26,7 +26,7 @@ func (tx *Transaction) Hash() []byte {
 	var hash [32]byte
 
 	txCopy := *tx
-	txCopy.ID = []byte{}
+	txCopy.Id = []byte{}
 
 	hash = sha256.Sum256(txCopy.Serialize())
 
@@ -53,20 +53,15 @@ func NewCoinbaseTx(to, data string) *Transaction {
 	txin := TXInput{[]byte{}, -1, nil, []byte(data)}
 	txout := NewTXOutput(subsidy, to)
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{*txout}}
-	tx.ID = tx.Hash()
+	tx.Id = tx.Hash()
 
 	return &tx
 }
 
-func NewUTXOTransaction(from, to string, amount int, UTXOSet *UTXOSet) *Transaction {
+func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	wallets, err := NewWallets()
-	if err != nil {
-		log.Panic(err)
-	}
-	wallet := wallets.GetWallet(from)
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
@@ -88,13 +83,14 @@ func NewUTXOTransaction(from, to string, amount int, UTXOSet *UTXOSet) *Transact
 	}
 
 	// Build a list of outputs
+	from := string(wallet.GetAddress())
 	outputs = append(outputs, *NewTXOutput(amount, to))
 	if acc > amount {
 		outputs = append(outputs, *NewTXOutput(acc-amount, from)) // a change
 	}
 
 	tx := Transaction{nil, inputs, outputs}
-	tx.ID = tx.Hash()
+	tx.Id = tx.Hash()
 	UTXOSet.Blockchain.SignTransaction(&tx, wallet.PrivateKey)
 
 	return &tx
@@ -115,10 +111,10 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		prevTx := prevTXs[hex.EncodeToString(vin.TxId)]
 		txCopy.Vin[inID].Signature = nil
 		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
-		txCopy.ID = txCopy.Hash()
+		txCopy.Id = txCopy.Hash()
 		txCopy.Vin[inID].PubKey = nil
 
-		r, s, err := ecdsa.Sign(rand.Reader, &privKey, txCopy.ID)
+		r, s, err := ecdsa.Sign(rand.Reader, &privKey, txCopy.Id)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -140,7 +136,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
 	}
 
-	txCopy := Transaction{tx.ID, inputs, outputs}
+	txCopy := Transaction{tx.Id, inputs, outputs}
 
 	return txCopy
 }
@@ -153,7 +149,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 		prevTX := prevTXs[hex.EncodeToString(vin.TxId)]
 		txCopy.Vin[inID].Signature = nil
 		txCopy.Vin[inID].PubKey = prevTX.Vout[vin.Vout].PubKeyHash
-		txCopy.ID = txCopy.Hash()
+		txCopy.Id = txCopy.Hash()
 		txCopy.Vin[inID].PubKey = nil
 
 		r := big.Int{}
@@ -169,10 +165,22 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 		y.SetBytes(vin.PubKey[(keyLen / 2):])
 
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
-		if !ecdsa.Verify(&rawPubKey, txCopy.ID, &r, &s) {
+		if !ecdsa.Verify(&rawPubKey, txCopy.Id, &r, &s) {
 			return false
 		}
 	}
 
 	return true
+}
+
+func DeserializeTransaction(data []byte) Transaction {
+	var transaction Transaction
+
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(&transaction)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return transaction
 }

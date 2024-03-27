@@ -148,7 +148,7 @@ func (u UTXOSet) Update(block *Block) {
 			newOutputs := TXOutputs{}
 			newOutputs.Outputs = append(newOutputs.Outputs, tx.Vout...)
 
-			err := b.Put(tx.ID, newOutputs.Serialize())
+			err := b.Put(tx.Id, newOutputs.Serialize())
 			if err != nil {
 				log.Panic(err)
 			}
@@ -158,4 +158,25 @@ func (u UTXOSet) Update(block *Block) {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func (u UTXOSet) CountTransactions() int {
+	db := u.Blockchain.db
+	counter := 0
+
+	err := db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(utxoBucket))
+		c := b.Cursor()
+
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			counter++
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return counter
 }

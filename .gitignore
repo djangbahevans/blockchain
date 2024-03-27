@@ -28,5 +28,5 @@ go.work
 # Built Visual Studio Code Extensions
 *.vsix
 
-blockchain.db
-wallet.dat
+*.db
+*.dat
